@@ -396,3 +396,71 @@ function debug($var, $name = '')
     is_scalar($var) ? var_dump($var) : print_r($var);
     print '</pre></div></div>';
 }
+
+/**
+ * @param $object
+ * @param string $name
+ * @param bool $attributesOnly
+ */
+function printr($object, $name = '', $attributesOnly = true)
+{
+    $console = false;
+    if (in_array(php_sapi_name(), array('cli'))) {
+        $console = true;
+    }
+    $classHint = '';
+    if ($attributesOnly && (is_array($object) || is_object($object))) {
+        if (is_object($object)) {
+            $class = get_class($object);
+            if (!$name)
+                $name = $class;
+            else
+                $classHint = 'type: ' . $class;
+        }
+        $object = getAttributes($object);
+    }
+    $bt = debug_backtrace();
+    $file = str_replace(bp(), '', $bt[0]['file']);
+
+    if ($console) {
+        print  $file . ' on line ' . $bt[0]['line'] . " $name is: ";
+    }
+    else {
+        print '<div style="background: #FFFBD6">';
+        $nameLine = '';
+        if ($name)
+            $nameLine = '<b> <span style="font-size:18px;">' . $name . "</span></b> $classHint printr:<br/>";
+        print '<span style="font-size:12px;">' . $nameLine . ' ' . $file . ' on line ' . $bt[0]['line'] . '</span>';
+        print '<div style="border:1px solid #000;">';
+        print '<pre>';
+    }
+
+    if (is_array($object))
+        print_r($object);
+    else
+        var_dump($object);
+    if (!$console) {
+        print '</pre>';
+        echo '</div></div><hr/>';
+    }
+}
+
+
+/**
+ * @param $models mixed|ActiveRecord|ActiveRecord[]
+ * @return array
+ */
+function getAttributes($models)
+{
+    if (is_object($models)) {
+        return !empty($models->attributes) ? $models->attributes : $models;
+    }
+    if (is_array($models)) {
+        $return = array();
+        foreach ($models as $k => $v) {
+            $return[$k] = !empty($v->attributes) ? $v->attributes : $v;
+        }
+        return $return;
+    }
+    return $models;
+}

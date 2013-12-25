@@ -68,7 +68,11 @@ class GeneratePropertiesAction extends CAction
         $modelList = array();
         foreach ($pathList as $path) {
             $modelName = basename($path, '.php');
-            @$model = new $modelName;
+            try{
+                @$model = new $modelName;
+            } catch (CException $e){
+                continue;
+            }
             if ($model && is_subclass_of($model, 'CActiveRecord')) {
                 $modelList[] = array('label' => $modelName, 'url' => array('/tool/generateProperties', 'modelName' => $modelName));
             }
@@ -136,6 +140,10 @@ class GeneratePropertiesAction extends CAction
         $properties[] = " * @method {$this->modelName} findBySql() findBySql(\$sql, array \$params = array())";
         $properties[] = " * @method {$this->modelName}[] findAllBySql() findAllBySql(\$sql, array \$params = array())";
         $properties[] = " *";
+
+        Yii::app()->db->getSchema()->refresh();
+        $this->model->refreshMetaData();
+        $this->model->refresh();
 
         // behaviors
         $behaviors = $this->model->behaviors();

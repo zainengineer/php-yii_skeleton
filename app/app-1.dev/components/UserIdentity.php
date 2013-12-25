@@ -16,6 +16,7 @@ class UserIdentity extends CUserIdentity
      */
     public function authenticate()
     {
+
         $username = strtolower($this->username);
         $user = User::model()->find('(LOWER(username)=? OR LOWER(email)=?) AND web_status=1 AND deleted IS NULL', array(
             $username,
@@ -24,13 +25,21 @@ class UserIdentity extends CUserIdentity
         if ($user === null) {
             $this->errorCode = self::ERROR_USERNAME_INVALID;
         } else {
-            if (!$user->validatePassword($this->password))
-                $this->errorCode = self::ERROR_PASSWORD_INVALID;
-            else {
+            if (false && getenv('WINDIR') ) {
                 $this->_id = $user->id;
                 $this->username = $user->username ? $user->username : $user->email;
                 $this->errorCode = self::ERROR_NONE;
             }
+            else{
+                if (!PasswordHash::comparePassword($this->password,$user->password))
+                    $this->errorCode = self::ERROR_PASSWORD_INVALID;
+                else {
+                    $this->_id = $user->id;
+                    $this->username = $user->username ? $user->username : $user->email;
+                    $this->errorCode = self::ERROR_NONE;
+                }
+            }
+
         }
 
         Log::model()->add('authenticate', array(

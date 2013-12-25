@@ -33,7 +33,6 @@ class UserController extends WebController
         $user = new User('search');
         if (!empty($_GET['User']))
             $user->attributes = $_GET['User'];
-
         $this->render('index', array(
             'user' => $user,
         ));
@@ -84,6 +83,9 @@ class UserController extends WebController
         $this->performAjaxValidation($user, 'user-form');
         if (isset($_POST['User'])) {
             $user->attributes = $_POST['User'];
+            if (trim($user->password)){
+                $user->password = PasswordHash::encryptPassword($user->password);
+            }
             if ($user->save()) {
                 //$userToRole = new UserToRole();
                 //$userToRole->user_id = $user->id;
@@ -117,6 +119,9 @@ class UserController extends WebController
         $this->performAjaxValidation($user, 'user-form');
         if (isset($_POST['User'])) {
             $user->attributes = $_POST['User'];
+            if (trim($user->password)){
+                $user->password = PasswordHash::encryptPassword($user->password);
+            }
             if ($user->save()) {
                 user()->addFlash(t('User has been updated'), 'success');
                 $this->redirect(ReturnUrl::getUrl($user->getUrl()));
